@@ -108,7 +108,7 @@ public class SparkLaunchProfiler {
 
         @Override
         public String getMinecraftVersion() {
-            return SharedConstants.getCurrentVersion().name();
+            return SharedConstants.getCurrentVersion().getName();
         }
 
     }

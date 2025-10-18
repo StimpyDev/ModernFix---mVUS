@@ -125,4 +125,14 @@ repositories {
             includeGroup "com.terraformersmc"
         }
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                url "https://maven.tterrag.com"
+            }
+        }
+        filter {
+            includeGroup "team.chisel.ctm"
+        }
+    }
 }

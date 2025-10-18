@@ -93,7 +93,7 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
 
     @Override
     protected int scrollBarY() {
-        return super.scrollBarY();
+        return super.scrollBarY() + 15 + 20;
     }
 
     public int getRowWidth() {
@@ -113,7 +113,7 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
             Font var10000 = OptionList.this.minecraft.font;
             float x = (float)(OptionList.this.minecraft.screen.width / 2 - this.width / 2);
             int y = top + height - 10;
-            guiGraphics.drawString(var10000, this.name, (int)x, y, 0xFFFFFFFF);
+            guiGraphics.drawString(var10000, this.name, (int)x, y, 16777215);
             /*
             if(mouseX >= x && mouseY >= y && mouseX <= (x + this.width) && mouseY <= (y + OptionList.this.minecraft.font.lineHeight))
                 OptionList.this.mainScreen.renderComponentHoverEffect(matrixStack, this.name.getStyle(), mouseX, mouseY);
@@ -188,7 +188,7 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
                 nameComponent = nameComponent.withStyle(style -> style.withItalic(true)).append(Component.translatable("modernfix.config.not_default"));
             float textX = (float)(left + DEPTH_OFFSET * option.getDepth() + 160 - OptionList.this.maxNameWidth);
             float textY = (float)(top + height / 2 - 4);
-            guiGraphics.drawString(OptionList.this.minecraft.font, nameComponent, (int)textX, (int)textY, 0xFFFFFFFF);
+            guiGraphics.drawString(OptionList.this.minecraft.font, nameComponent, (int)textX, (int)textY, 16777215);
             this.toggleButton.setPosition(left + 175, top);
             this.toggleButton.setMessage(getOptionMessage(this.option));
             this.toggleButton.render(guiGraphics, mouseX, mouseY, partialTicks);

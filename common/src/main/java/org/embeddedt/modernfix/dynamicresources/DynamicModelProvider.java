@@ -3,7 +3,6 @@ package org.embeddedt.modernfix.dynamicresources;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonObject;
@@ -41,7 +40,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import org.embeddedt.modernfix.ModernFix;
-import org.embeddedt.modernfix.duck.IModelHoldingBlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -202,33 +200,6 @@ public class DynamicModelProvider {
 
     public Map<BlockState, BlockStateModel> getTopLevelEmulatedRegistry() {
         return new EmulatedRegistry<>(BlockState.class, this.loadedBakedModels, BlockStateSet::instance, this.mrlModelOverrides);
-    }
-
-    public Map<BlockState, BlockStateModel> getFastTopLevelEmulatedRegistry() {
-        var dynamicRegistry = getTopLevelEmulatedRegistry();
-
-        return new ForwardingMap<>() {
-            @Override
-            protected Map<BlockState, BlockStateModel> delegate() {
-                return dynamicRegistry;
-            }
-
-            @Override
-            public BlockStateModel get(Object key) {
-                BlockStateModel result;
-                if (key instanceof IModelHoldingBlockState state) {
-                    result = state.mfix$getModel();
-                    if (result != null) {
-                        return result;
-                    }
-                }
-                result = dynamicRegistry.getOrDefault(key, getMissingBakedModel());
-                if (key instanceof IModelHoldingBlockState state) {
-                    state.mfix$setModel(result);
-                }
-                return result;
-            }
-        };
     }
 
     /*

@@ -79,15 +79,13 @@ public class ModernFixForge {
     }
 
     private void registerNetworkChannel(final RegisterPayloadHandlersEvent event) {
-        if (ModernFixMixinPlugin.instance.isOptionEnabled("perf.smart_ingredient_sync.Channel")) {
-            // Sets the current network version
-            final PayloadRegistrar registrar = event.registrar("1").optional();
-            registrar.playToClient(
-                    SmartIngredientSyncPayload.TYPE,
-                    SmartIngredientSyncPayload.STREAM_CODEC,
-                    (payload, ctx) -> {}
-            );
-        }
+        // Sets the current network version
+        final PayloadRegistrar registrar = event.registrar("1").optional();
+        registrar.playToClient(
+                SmartIngredientSyncPayload.TYPE,
+                SmartIngredientSyncPayload.STREAM_CODEC,
+                (payload, ctx) -> {}
+        );
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
