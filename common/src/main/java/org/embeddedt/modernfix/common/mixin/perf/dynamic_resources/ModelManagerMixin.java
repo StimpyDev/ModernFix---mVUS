@@ -1,5 +1,6 @@
 package org.embeddedt.modernfix.common.mixin.perf.dynamic_resources;
 
+import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.Maps;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Minecraft;
@@ -12,9 +13,11 @@ import net.minecraft.client.resources.model.AtlasSet;
 import net.minecraft.client.resources.model.BlockStateModelLoader;
 import net.minecraft.client.resources.model.ClientItemInfoLoader;
 import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.ArrayUtils;
@@ -32,7 +35,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.ref.WeakReference;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -64,7 +69,30 @@ public class ModelManagerMixin implements DynamicModelProvider.ModelManagerExten
     private static Map<BlockState, BlockStateModel> createBlockStateToModelDispatch(Map<BlockState, BlockStateModel> map, BlockStateModel missingModel) {
         var dynamicProvider = Objects.requireNonNull(DynamicModelProvider.currentReloadingModelProvider.get());
 
-        return dynamicProvider.getFastTopLevelEmulatedRegistry();
+        var dynamicRegistry = dynamicProvider.getTopLevelEmulatedRegistry();
+
+        return new ForwardingMap<>() {
+            @Override
+            protected Map<BlockState, BlockStateModel> delegate() {
+                return dynamicRegistry;
+            }
+
+            @Override
+            public BlockStateModel get(Object key) {
+                BlockStateModel result;
+                if (key instanceof IModelHoldingBlockState state) {
+                    result = state.mfix$getModel();
+                    if (result != null) {
+                        return result;
+                    }
+                }
+                result = dynamicRegistry.getOrDefault(key, dynamicProvider.getMissingBakedModel());
+                if (key instanceof IModelHoldingBlockState state) {
+                    state.mfix$setModel(result);
+                }
+                return result;
+            }
+        };
     }
 
     @Redirect(method = "reload", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/model/ClientItemInfoLoader;scheduleLoad(Lnet/minecraft/server/packs/resources/ResourceManager;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
@@ -103,5 +131,25 @@ public class ModelManagerMixin implements DynamicModelProvider.ModelManagerExten
     @Override
     public DynamicModelProvider mfix$getModelProvider() {
         return this.mfix$modelProvider;
+    }
+
+    /**
+     * @author DerCommander323
+     * @reason stop NeoForge from iterating over registered items to warn about missing models, as it always fails
+     *  with dynamic resources enabled
+     */
+    @Redirect(method = "apply", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/DefaultedRegistry;iterator()Ljava/util/Iterator;"))
+    private static Iterator<Item> iterateItemRegistry(DefaultedRegistry<Item> registry) {
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public Item next() {
+                throw new NoSuchElementException("Tried to iterate over empty item registry iterator");
+            }
+        };
     }
 }
