@@ -2,9 +2,9 @@ package org.embeddedt.modernfix.neoforge.init;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,9 +16,11 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import org.embeddedt.modernfix.ModernFix;
 import org.embeddedt.modernfix.ModernFixClient;
 import org.embeddedt.modernfix.screen.ModernFixConfigScreen;
 
@@ -27,6 +29,7 @@ import java.util.List;
 
 public class ModernFixClientForge {
     private static ModernFixClient commonMod;
+    public static KeyMapping.Category MODERNFIX_KEYS = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(ModernFix.MODID, "key.modernfix"));
 
     public ModernFixClientForge(ModContainer modContainer, IEventBus modBus) {
         commonMod = new ModernFixClient();
@@ -38,7 +41,7 @@ public class ModernFixClientForge {
     private KeyMapping configKey;
 
     private void keyBindRegister(RegisterKeyMappingsEvent event) {
-        configKey = new KeyMapping("key.modernfix.config", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), new net.minecraft.client.KeyMapping.Category(ResourceLocation.fromNamespaceAndPath("minecraft", "misc")));
+        configKey = new KeyMapping("key.modernfix.config", KeyConflictContext.UNIVERSAL, InputConstants.UNKNOWN, MODERNFIX_KEYS);
         event.register(configKey);
     }
 
@@ -58,32 +61,6 @@ public class ModernFixClientForge {
     }
 
     private static final List<String> brandingList = new ArrayList<>();
-
-    // TODO: CustomizeGuiOverlayEvent.DebugText has been removed in NeoForge 21.10.x
-    // This needs to be reimplemented using the new overlay system
-    /*
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onRenderOverlay(CustomizeGuiOverlayEvent.DebugText event) {
-        if(commonMod.brandingString != null && Minecraft.getInstance().getDebugOverlay().showDebugScreen()) {
-            if(brandingList.size() == 0) {
-                brandingList.add("");
-                brandingList.add(commonMod.brandingString);
-            }
-            int targetIdx = 0, numSeenBlanks = 0;
-            List<String> right = event.getRight();
-            while(targetIdx < right.size()) {
-                String s = right.get(targetIdx);
-                if(s == null || s.length() == 0) {
-                    numSeenBlanks++;
-                }
-                if(numSeenBlanks == 3)
-                    break;
-                targetIdx++;
-            }
-            right.addAll(targetIdx, brandingList);
-        }
-    }
-    */
 
     @SubscribeEvent
     public void onDisconnect(LevelEvent.Unload event) {
