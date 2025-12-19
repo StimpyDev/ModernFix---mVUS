@@ -24,9 +24,6 @@ import org.embeddedt.modernfix.ModernFix;
 import org.embeddedt.modernfix.ModernFixClient;
 import org.embeddedt.modernfix.screen.ModernFixConfigScreen;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ModernFixClientForge {
     private static ModernFixClient commonMod;
     public static KeyMapping.Category MODERNFIX_KEYS = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(ModernFix.MODID, "key.modernfix"));
@@ -59,8 +56,6 @@ public class ModernFixClientForge {
             Minecraft.getInstance().setScreen(new ModernFixConfigScreen(Minecraft.getInstance().screen));
         }
     }
-
-    private static final List<String> brandingList = new ArrayList<>();
 
     @SubscribeEvent
     public void onDisconnect(LevelEvent.Unload event) {
