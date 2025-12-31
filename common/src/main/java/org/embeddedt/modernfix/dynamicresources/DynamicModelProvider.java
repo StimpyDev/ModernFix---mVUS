@@ -302,7 +302,7 @@ public class DynamicModelProvider {
     }
 
     public Map<Identifier, ClientItem.Properties> getItemPropertiesEmulatedRegistry() {
-        return Maps.transformValues(new EmulatedRegistry<>(Identifier.class, this.loadedClientItemProperties, BuiltInRegistries.ITEM::keySet, Map.of()), ClientItem::properties);
+        return Maps.transformValues(new EmulatedRegistry<>(Identifier.class, this.loadedClientItemProperties, BuiltInRegistries.ITEM::keySet, Map.of()), clientItem -> clientItem != null ? clientItem.properties() : ClientItem.Properties.DEFAULT);
     }
 
     private <K, V> LoadingCache<K, Optional<V>> makeLoadingCache(Function<K, Optional<V>> loadingFunction) {
@@ -603,19 +603,22 @@ public class DynamicModelProvider {
         if (DEBUG_DYNAMIC_MODEL_LOADING) {
             ModernFix.LOGGER.info("Loading client item '{}'", location);
         }
-        var resource = this.resourceManager.getResource(Identifier.fromNamespaceAndPath(location.getNamespace(), "items/" + location.getPath() + ".json"));
-        if(resource.isPresent()) {
-            try(Reader reader = resource.get().openAsReader()) {
-                ClientItem clientItem = ClientItem.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow();
-                return Optional.of(clientItem);
-            } catch(Exception e) {
-                ModernFix.LOGGER.error("Failed to load client item {} from '{}'", location, resource.get().sourcePackId(), e);
-                return Optional.empty();
-            }
-        } else {
+        var resourceId = Identifier.fromNamespaceAndPath(location.getNamespace(), "items/" + location.getPath() + ".json");
+        var resources = this.resourceManager.getResourceStack(resourceId);
+        if(resources.isEmpty()) {
             ModernFix.LOGGER.warn("Client item '{}' does not exist in any resource packs", location);
             return Optional.empty();
         }
+        for(Resource resource : resources) {
+            try(Reader reader = resource.openAsReader()) {
+                ClientItem clientItem = ClientItem.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow();
+                return Optional.of(clientItem);
+            } catch(Exception e) {
+                ModernFix.LOGGER.error("Failed to load client item {} from '{}', trying next resource pack", location, resource.sourcePackId(), e);
+            }
+        }
+        ModernFix.LOGGER.error("All resource packs failed to load client item '{}'", location);
+        return Optional.empty();
     }
 
     private Optional<ItemModel> loadItemModel(Identifier identifier) {
