@@ -6,9 +6,12 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.PlayerSkinRenderCache;
 import net.minecraft.client.renderer.block.model.*;
@@ -106,7 +109,6 @@ public class DynamicModelProvider {
     private final List<DynamicModelProvider.DynamicModelPlugin> pluginList = new ArrayList<>();
 
     private static final boolean DEBUG_DYNAMIC_MODEL_LOADING = Boolean.getBoolean("modernfix.debugDynamicModelLoading");
-
     public DynamicModelProvider(ResourceManager resourceManager, EntityModelSet entityModelSet,
                                 SpriteLoader.Preparations blockPreparations, SpriteLoader.Preparations itemPreparations,
                                 PlayerSkinRenderCache skinRenderCache, MaterialSet materialSet,
@@ -598,6 +600,16 @@ public class DynamicModelProvider {
         return Optional.of(wrapper);
     }
 
+    private DynamicOps<JsonElement> getRegistryOps() {
+        var minecraft = Minecraft.getInstance();
+        if (minecraft.level != null) {
+            return minecraft.level.registryAccess().createSerializationContext(JsonOps.INSTANCE);
+        }
+        if (minecraft.getConnection() != null) {
+            return minecraft.getConnection().registryAccess().createSerializationContext(JsonOps.INSTANCE);
+        }
+        return JsonOps.INSTANCE;
+    }
 
     private Optional<ClientItem> loadClientItemProperties(Identifier location) {
         if (DEBUG_DYNAMIC_MODEL_LOADING) {
@@ -605,15 +617,18 @@ public class DynamicModelProvider {
         }
         var resourceId = Identifier.fromNamespaceAndPath(location.getNamespace(), "items/" + location.getPath() + ".json");
         var resources = this.resourceManager.getResourceStack(resourceId);
-        if(resources.isEmpty()) {
+        if (resources.isEmpty()) {
             ModernFix.LOGGER.warn("Client item '{}' does not exist in any resource packs", location);
             return Optional.empty();
         }
-        for(Resource resource : resources) {
-            try(Reader reader = resource.openAsReader()) {
-                ClientItem clientItem = ClientItem.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow();
+        
+        var ops = getRegistryOps();
+        for (int i = resources.size() - 1; i >= 0; i--) {
+            Resource resource = resources.get(i);
+            try (Reader reader = resource.openAsReader()) {
+                ClientItem clientItem = ClientItem.CODEC.parse(ops, JsonParser.parseReader(reader)).getOrThrow();
                 return Optional.of(clientItem);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 ModernFix.LOGGER.error("Failed to load client item {} from '{}', trying next resource pack", location, resource.sourcePackId(), e);
             }
         }
