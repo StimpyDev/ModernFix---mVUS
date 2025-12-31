@@ -34,6 +34,8 @@ jobs:
             .gradle/loom-cache
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle.properties', '**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
+      - name: run spotlessApply
+        run: ./gradlew spotlessApply
       - name: Build ModernFix using Gradle
         run: ./gradlew build
       - name: Upload Artifacts to GitHub
