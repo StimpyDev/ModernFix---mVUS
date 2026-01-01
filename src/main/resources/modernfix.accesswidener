@@ -58,6 +58,7 @@ accessible method net/minecraft/client/resources/model/ModelDiscovery$ModelWrapp
 accessible method net/minecraft/client/resources/model/ModelDiscovery createAndQueueWrapper (Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/resources/model/UnbakedModel;)Lnet/minecraft/client/resources/model/ModelDiscovery$ModelWrapper;
 accessible field net/minecraft/client/resources/model/ModelDiscovery$ModelWrapper parent Lnet/minecraft/client/resources/model/ModelDiscovery$ModelWrapper;
 accessible method net/minecraft/client/resources/model/BlockStateDefinitions definitionLocationToBlockStateMapper ()Ljava/util/function/Function;
+accessible field net/minecraft/client/resources/model/BlockStateDefinitions STATIC_DEFINITIONS Ljava/util/Map;
 
 accessible class net/minecraft/client/multiplayer/ClientChunkCache$Storage
 

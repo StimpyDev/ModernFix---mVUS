@@ -70,6 +70,7 @@
     "perf.dedicated_reload_executor.WorldOpenFlowsMixin",
     "perf.dynamic_entity_renderers.EntityRenderDispatcherMixin",
     "perf.dynamic_entity_renderers.EntityRenderersMixin",
+    "perf.dynamic_resources.BlockStateDefinitionsAccessor",
     "perf.dynamic_resources.IdMapperAccessor",
     "perf.dynamic_resources.MixinBlockState",
     "perf.dynamic_resources.MixinBlockStateModelLoader",
