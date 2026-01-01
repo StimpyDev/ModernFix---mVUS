@@ -42,7 +42,7 @@
   ],
   "accessWidener": "modernfix.accesswidener",
   "depends": {
-    "minecraft": ">=1.16.2",
+    "minecraft": "${supported_minecraft_versions}",
     "fabricloader": ">=0.16.10"
   },
   "breaks": {
