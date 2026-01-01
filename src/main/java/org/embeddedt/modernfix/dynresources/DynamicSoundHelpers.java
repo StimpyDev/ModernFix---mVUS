@@ -1,4 +1,4 @@
-package org.embeddedt.modernfix.dynamicresources;
+package org.embeddedt.modernfix.dynresources;
 
 public class DynamicSoundHelpers {
 	/**

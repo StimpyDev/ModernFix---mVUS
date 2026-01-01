@@ -39,6 +39,7 @@ accessible field net/minecraft/client/renderer/block/model/BlockModel GSON Lcom/
 accessible class net/minecraft/server/level/ChunkMap$DistanceManager
 accessible class net/minecraft/client/resources/model/ModelBakery$ModelBakerImpl
 accessible class net/minecraft/client/resources/model/ModelManager$ReloadState
+accessible class net/minecraft/client/resources/model/ModelManager$ResolvedModels
 accessible method net/minecraft/client/resources/model/BlockStateModelLoader loadBlockStateDefinitionStack (Lnet/minecraft/resources/Identifier;Lnet/minecraft/world/level/block/state/StateDefinition;Ljava/util/List;)Lnet/minecraft/client/resources/model/BlockStateModelLoader$LoadedModels;
 accessible class net/minecraft/client/resources/model/BlockStateModelLoader$LoadedBlockModelDefinition
 accessible method net/minecraft/client/resources/model/BlockStateModelLoader$LoadedBlockModelDefinition <init> (Ljava/lang/String;Lnet/minecraft/client/renderer/block/model/BlockModelDefinition;)V
@@ -52,6 +53,7 @@ accessible class net/minecraft/client/multiplayer/SessionSearchTrees$Key
 
 accessible class net/minecraft/client/resources/model/ModelDiscovery$ModelWrapper
 accessible method net/minecraft/client/resources/model/ModelDiscovery$ModelWrapper <init> (Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/resources/model/UnbakedModel;Z)V
+accessible method net/minecraft/client/resources/model/ModelDiscovery createAndQueueWrapper (Lnet/minecraft/resources/Identifier;Lnet/minecraft/client/resources/model/UnbakedModel;)Lnet/minecraft/client/resources/model/ModelDiscovery$ModelWrapper;
 accessible field net/minecraft/client/resources/model/ModelDiscovery$ModelWrapper parent Lnet/minecraft/client/resources/model/ModelDiscovery$ModelWrapper;
 accessible method net/minecraft/client/resources/model/BlockStateDefinitions definitionLocationToBlockStateMapper ()Ljava/util/function/Function;
 

@@ -7,7 +7,7 @@ import com.mojang.blaze3d.audio.SoundBuffer;
 import net.minecraft.client.sounds.SoundBufferLibrary;
 import net.minecraft.resources.Identifier;
 import org.embeddedt.modernfix.annotation.ClientOnlyMixin;
-import org.embeddedt.modernfix.dynamicresources.DynamicSoundHelpers;
+import org.embeddedt.modernfix.dynresources.DynamicSoundHelpers;
 import org.embeddedt.modernfix.ModernFix;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
