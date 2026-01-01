@@ -1,66 +1,90 @@
 plugins {
-    id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "1.13-SNAPSHOT" apply false
+    id "fabric-loom" version "${loom_version}"
     id "maven-publish"
-    id 'com.matthewprenger.cursegradle' version '1.4.0' apply false
-    id 'com.palantir.git-version' version '1.0.0'
-    id 'org.ajoberstar.grgit' version '5.2.0'
-    id 'se.bjurr.gitchangelog.git-changelog-gradle-plugin' version '1.79.0'
-    id "com.modrinth.minotaur" version "2.+" apply false
-    id("com.diffplug.spotless") version "6.25.0" apply false
-    id 'modernfix.common-conventions' apply false
+    id "com.github.johnrengelman.shadow" version "${shadow_version}"
 }
 
-architectury {
-    minecraft = rootProject.minecraft_version
+group = 'org.embeddedt'
+base {
+    archivesName = 'modernfix'
 }
 
-ext.archives_base_name = 'modernfix'
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withSourcesJar()
+}
 
-apply plugin: 'modernfix.common-conventions'
+repositories {
+    mavenCentral()
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://maven.parchmentmc.org" }
+    maven { url "https://maven.terraformersmc.com/releases/" }
+    maven { url "https://cursemaven.com" }
+    maven { url "https://api.modrinth.com/maven" }
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/modernfix.accesswidener")
+    mixin {
+        useLegacyMixinAp = true
+    }
+    runs {
+        client {
+            vmArgs "-Xmx2G"
+            property("mixin.debug.export", "true")
+        }
+        server {
+            vmArgs "-Xmx2G"
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    
+    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    
+    // MixinExtras
+    implementation(include("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}"))
+    annotationProcessor "io.github.llamalad7:mixinextras-fabric:${mixinextras_version}"
+    
+    // Optional dependencies for compatibility
+    modCompileOnly("com.terraformersmc:modmenu:${modmenu_version}") { transitive = false }
+    
+    // Spark for profiling integration (optional)
+    modCompileOnly "maven.modrinth:spark:1.10.119-fabric"
+}
+
+processResources {
+    inputs.property "version", project.version
+    
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
 
 tasks.withType(JavaCompile).configureEach {
-    // ensure that the encoding is set to UTF-8, no matter what the system default is
-    // this fixes some edge cases with special characters not displaying correctly
-    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-    // If Javadoc is generated, this must be specified in that task too.
     options.encoding = "UTF-8"
-
-    // The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
-    // JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
-    // We'll use that if it's available, but otherwise we'll use the older option.
-    def targetVersion = 8
-    /*
-    if (JavaVersion.current().isJava9Compatible()) {
-        options.release = targetVersion
-    }
-     */
+    options.release = 21
 }
 
-tasks.register('generateChangelog', se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
-    def details = versionDetails();
-    def theVersionRef
-    if (details.commitDistance > 0) {
-        theVersionRef = details.lastTag;
-    } else {
-        def secondLastTagCmd = "git describe --abbrev=0 " + details.lastTag + "^"
-        def secondLastTag = secondLastTagCmd.execute().text.trim()
-        theVersionRef = secondLastTag;
+jar {
+    from("LICENSE") {
+        rename { "${it}_${base.archivesName.get()}" }
     }
-
-    fromRef = theVersionRef
-
-    file = new File("${rootDir}/CHANGELOG.md");
-    templateContent = new File("${rootDir}/gradle/changelog.mustache").getText('UTF-8').replace("[[modernFixVersionRef]]", theVersionRef);
-    toCommit = "HEAD";
 }
 
-tasks.register('checkCleanTag') {
-    doLast {
-        def details = versionDetails()
-        if (!details.isCleanTag || versionDetails().commitDistance != 0) {
-            throw new GradleException('Not a clean tree.')
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
         }
+    }
+    repositories {
+        // Add repositories to publish to here.
     }
 }
 
