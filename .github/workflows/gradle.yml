@@ -32,14 +32,12 @@ jobs:
         with:
           path: |
             .gradle/loom-cache
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle.properties', '**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-      - name: run spotlessApply
-        run: ./gradlew spotlessApply
+          key: ${{ runner.os }}-loom-${{ hashFiles('**/gradle.properties', '**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-loom-
       - name: Build ModernFix using Gradle
         run: ./gradlew build
       - name: Upload Artifacts to GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: Package
-          path: bin
+          name: ModernFix-Fabric
+          path: build/libs/*.jar
