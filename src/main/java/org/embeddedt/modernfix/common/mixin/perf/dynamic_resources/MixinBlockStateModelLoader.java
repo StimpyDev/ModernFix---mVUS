@@ -23,8 +23,8 @@ import java.util.function.Function;
 @Mixin(BlockStateModelLoader.class)
 @ClientOnlyMixin
 public abstract class MixinBlockStateModelLoader {
-    @Shadow
-    protected static BlockStateModelLoader.LoadedModels lambda$loadBlockStates$2(Map.Entry<Identifier, List<Resource>> entry, Function<Identifier, StateDefinition<Block, BlockState>> locationToBlockStateMapper) {
+    @Shadow(aliases = {"method_65720"})
+    private static BlockStateModelLoader.LoadedModels loadSingleBlockStateEntry(Map.Entry<Identifier, List<Resource>> entry, Function<Identifier, StateDefinition<Block, BlockState>> locationToBlockStateMapper) {
         throw new AssertionError();
     }
 
@@ -35,7 +35,7 @@ public abstract class MixinBlockStateModelLoader {
     @ModifyArg(method = "loadBlockStates", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenCompose(Ljava/util/function/Function;)Ljava/util/concurrent/CompletableFuture;"))
     private static Function<Map<Identifier, List<Resource>>, ? extends CompletionStage<BlockStateModelLoader.LoadedModels>> skipAOTBlockStateLoad(Function<Map<Identifier, List<Resource>>, ? extends CompletionStage<Map<Identifier, BlockStateModelLoader.LoadedModels>>> original, @Local(ordinal = 0) Function<Identifier, StateDefinition<Block, BlockState>> mapper) {
         return resourceMap -> CompletableFuture.completedFuture(DynamicModelSystem.createDynamicBlockStateLoadedModels(resourceMap, (id, resources) -> {
-            return lambda$loadBlockStates$2(Map.entry(id, resources), mapper);
+            return loadSingleBlockStateEntry(Map.entry(id, resources), mapper);
         }));
     }
 }
