@@ -93,7 +93,7 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
     }
 
     @Override
-    protected int scrollBarY() {
+    public int scrollBarY() {
         return super.scrollBarY();
     }
 

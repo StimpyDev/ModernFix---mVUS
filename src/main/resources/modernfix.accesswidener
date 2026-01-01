@@ -1,4 +1,4 @@
-accessWidener   v2  named
+accessWidener   v2  official
 
 accessible field net/minecraft/client/multiplayer/ClientChunkCache storage Lnet/minecraft/client/multiplayer/ClientChunkCache$Storage;
 accessible field net/minecraft/client/multiplayer/ClientChunkCache lightEngine Lnet/minecraft/world/level/lighting/LevelLightEngine;
@@ -41,7 +41,7 @@ accessible class net/minecraft/server/level/ChunkMap$DistanceManager
 accessible class net/minecraft/client/resources/model/ModelBakery$ModelBakerImpl
 accessible class net/minecraft/client/resources/model/ModelManager$ReloadState
 accessible class net/minecraft/client/resources/model/ModelManager$ResolvedModels
-accessible method net/minecraft/client/resources/model/BlockStateModelLoader method_65720 (Ljava/util/Map$Entry;Ljava/util/function/Function;)Lnet/minecraft/client/resources/model/BlockStateModelLoader$LoadedModels;
+accessible method net/minecraft/client/resources/model/BlockStateModelLoader lambda$loadBlockStates$2 (Ljava/util/Map$Entry;Ljava/util/function/Function;)Lnet/minecraft/client/resources/model/BlockStateModelLoader$LoadedModels;
 accessible method net/minecraft/client/resources/model/BlockStateModelLoader loadBlockStateDefinitionStack (Lnet/minecraft/resources/Identifier;Lnet/minecraft/world/level/block/state/StateDefinition;Ljava/util/List;)Lnet/minecraft/client/resources/model/BlockStateModelLoader$LoadedModels;
 accessible class net/minecraft/client/resources/model/BlockStateModelLoader$LoadedBlockModelDefinition
 accessible method net/minecraft/client/resources/model/BlockStateModelLoader$LoadedBlockModelDefinition <init> (Ljava/lang/String;Lnet/minecraft/client/renderer/block/model/BlockModelDefinition;)V

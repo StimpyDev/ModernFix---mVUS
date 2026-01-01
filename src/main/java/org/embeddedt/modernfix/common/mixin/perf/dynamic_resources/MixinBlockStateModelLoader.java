@@ -23,7 +23,7 @@ import java.util.function.Function;
 @Mixin(BlockStateModelLoader.class)
 @ClientOnlyMixin
 public abstract class MixinBlockStateModelLoader {
-    @Shadow(aliases = {"method_65720"})
+    @Shadow(aliases = {"lambda$loadBlockStates$2"})
     private static BlockStateModelLoader.LoadedModels loadSingleBlockStateEntry(Map.Entry<Identifier, List<Resource>> entry, Function<Identifier, StateDefinition<Block, BlockState>> locationToBlockStateMapper) {
         throw new AssertionError();
     }
