@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.objects.AbstractObject2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -34,6 +35,8 @@ import org.embeddedt.modernfix.common.mixin.perf.dynamic_resources.IdMapperAcces
 import org.embeddedt.modernfix.common.mixin.perf.dynamic_resources.ModelDiscoveryAccessor;
 
 import java.io.Reader;
+import java.util.AbstractSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,18 +74,10 @@ public class DynamicModelSystem {
         BlockStateModelLoader.LoadedModels loadEntry(Identifier identifier, List<Resource> blockstateResources);
     }
 
+    private static Set<BlockState> getAllBlockStates() {
+        return ((IdMapperAccessor<BlockState>) Block.BLOCK_STATE_REGISTRY).getReferenceMap().keySet();
+    }
     public static BlockStateModelLoader.LoadedModels createDynamicBlockStateLoadedModels(Map<Identifier, List<Resource>> resourceMap, SingleBlockStateEntryLoader entryLoader) {
-        Set<BlockState> allStates = new java.util.HashSet<>(((IdMapperAccessor<BlockState>) Block.BLOCK_STATE_REGISTRY).getReferenceMap().keySet());
-        Map<BlockState, Identifier> staticLookup = new java.util.IdentityHashMap<>();
-        for (var entry : BlockStateDefinitionsAccessor.getStaticDefinitions().entrySet()) {
-            for (BlockState state : entry.getValue().getPossibleStates()) {
-                allStates.add(state);
-                staticLookup.put(state, entry.getKey());
-            }
-        }
-        if (!staticLookup.isEmpty()) {
-            ModernFix.LOGGER.info("Registered {} states from {} static definitions for dynamic loading", staticLookup.size(), BlockStateDefinitionsAccessor.getStaticDefinitions().size());
-        }
         LoadingCache<Identifier, BlockStateModelLoader.LoadedModels> definitionCache = CacheBuilder.newBuilder().softValues().maximumSize(1000).build(new CacheLoader<>() {
             @Override
             public BlockStateModelLoader.LoadedModels load(Identifier key) throws Exception {
@@ -94,9 +89,17 @@ public class DynamicModelSystem {
                 return entryLoader.loadEntry(file, resources);
             }
         });
-        return new BlockStateModelLoader.LoadedModels(Maps.asMap(allStates, state -> {
-            Identifier staticId = staticLookup.get(state);
-            Identifier identifier = staticId != null ? staticId : BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        var staticDefinitions = BlockStateDefinitionsAccessor.getStaticDefinitions();
+        var staticIdentifiers = staticDefinitions.entrySet()
+                .stream()
+                .flatMap(e -> e.getValue().getPossibleStates().stream().map(s -> Map.entry(s, e.getKey())))
+                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+        var blockStateSet = new DisjointSetUnion<>(getAllBlockStates(), staticIdentifiers.keySet());
+        return new BlockStateModelLoader.LoadedModels(Maps.asMap(blockStateSet, state -> {
+            var identifier = staticIdentifiers.get(state);
+            if (identifier == null) {
+                identifier = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+            }
             var loadedModels = definitionCache.getUnchecked(identifier);
             return loadedModels.models().get(state);
         }));
