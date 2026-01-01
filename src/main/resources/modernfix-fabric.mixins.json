@@ -19,6 +19,5 @@
   },
   "overwrites": {
     "conformVisibility": true
-  },
-  "refmap": "modernfix-fabric-fabric-refmap.json"
+  }
 }
