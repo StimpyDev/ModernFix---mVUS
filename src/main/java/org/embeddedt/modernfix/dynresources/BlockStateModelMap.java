@@ -3,6 +3,7 @@ package org.embeddedt.modernfix.dynresources;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import org.embeddedt.modernfix.common.mixin.perf.dynamic_resources.BlockStateDefinitionsAccessor;
 import org.embeddedt.modernfix.duck.IModelHoldingBlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,6 +101,11 @@ public record BlockStateModelMap(Map<BlockState, BlockStateModel> modelMap,
     public static void resetCache() {
         for (var state : Block.BLOCK_STATE_REGISTRY) {
             ((IModelHoldingBlockState) state).mfix$setModel(null);
+        }
+        for (var stateDefinition : BlockStateDefinitionsAccessor.getStaticDefinitions().values()) {
+            for (var state : stateDefinition.getPossibleStates()) {
+                ((IModelHoldingBlockState) state).mfix$setModel(null);
+            }
         }
     }
 }
