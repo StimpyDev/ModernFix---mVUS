@@ -23,12 +23,12 @@ import net.minecraft.client.resources.model.ResolvedModel;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.client.renderer.block.model.BlockModel;
+import net.fabricmc.fabric.impl.client.model.loading.UnbakedModelDeserializerRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
 import org.embeddedt.modernfix.ModernFix;
 import org.embeddedt.modernfix.common.mixin.perf.dynamic_resources.BlockStateDefinitionsAccessor;
 import org.embeddedt.modernfix.common.mixin.perf.dynamic_resources.IdMapperAccessor;
@@ -62,7 +62,8 @@ public class DynamicModelSystem {
                     ModernFix.LOGGER.info("Loading unbaked model {}", key);
                 }
                 try (Reader reader = resource.openAsReader()) {
-                    return BlockModel.fromStream(reader);
+                    // Use Fabric's deserializer - handles both vanilla and custom fabric models
+                    return UnbakedModelDeserializerRegistry.deserialize(reader);
                 }
             }
         });
