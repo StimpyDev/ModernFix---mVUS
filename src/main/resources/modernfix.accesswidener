@@ -26,7 +26,6 @@ accessible method net/minecraft/world/level/levelgen/DensityFunctions$MulOrAdd <
 accessible class net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache
 accessible class net/minecraft/server/level/ServerChunkCache$MainThreadExecutor
 accessible field net/minecraft/world/level/block/state/BlockBehaviour properties Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;
-accessible class net/minecraft/client/renderer/block/model/BlockElementFace$Deserializer
 accessible class net/minecraft/client/renderer/texture/Stitcher$Holder
 accessible field net/minecraft/client/renderer/texture/Stitcher$Holder width I
 accessible field net/minecraft/client/renderer/texture/Stitcher$Holder height I
@@ -36,15 +35,12 @@ accessible field net/minecraft/server/level/ChunkMap updatingChunkMap Lit/unimi/
 accessible field net/minecraft/server/level/ChunkMap visibleChunkMap Lit/unimi/dsi/fastutil/longs/Long2ObjectLinkedOpenHashMap;
 accessible field net/minecraft/server/level/ChunkMap pendingUnloads Lit/unimi/dsi/fastutil/longs/Long2ObjectLinkedOpenHashMap;
 accessible method net/minecraft/resources/ResourceKey <init> (Lnet/minecraft/resources/Identifier;Lnet/minecraft/resources/Identifier;)V
-accessible field net/minecraft/client/renderer/block/model/BlockModel GSON Lcom/google/gson/Gson;
 accessible class net/minecraft/server/level/ChunkMap$DistanceManager
 accessible class net/minecraft/client/resources/model/ModelBakery$ModelBakerImpl
 accessible class net/minecraft/client/resources/model/ModelManager$ReloadState
 accessible class net/minecraft/client/resources/model/ModelManager$ResolvedModels
 accessible method net/minecraft/client/resources/model/BlockStateModelLoader lambda$loadBlockStates$2 (Ljava/util/Map$Entry;Ljava/util/function/Function;)Lnet/minecraft/client/resources/model/BlockStateModelLoader$LoadedModels;
 accessible method net/minecraft/client/resources/model/BlockStateModelLoader loadBlockStateDefinitionStack (Lnet/minecraft/resources/Identifier;Lnet/minecraft/world/level/block/state/StateDefinition;Ljava/util/List;)Lnet/minecraft/client/resources/model/BlockStateModelLoader$LoadedModels;
-accessible class net/minecraft/client/resources/model/BlockStateModelLoader$LoadedBlockModelDefinition
-accessible method net/minecraft/client/resources/model/BlockStateModelLoader$LoadedBlockModelDefinition <init> (Ljava/lang/String;Lnet/minecraft/client/renderer/block/model/BlockModelDefinition;)V
 accessible class net/minecraft/world/level/chunk/PalettedContainer$Data
 accessible field net/minecraft/server/MinecraftServer resources Lnet/minecraft/server/MinecraftServer$ReloadableResources;
 accessible class net/minecraft/server/MinecraftServer$ReloadableResources
@@ -73,13 +69,11 @@ accessible class net/minecraft/world/level/levelgen/DensityFunctions$MulOrAdd$Ty
 
 accessible class net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache
 accessible class net/minecraft/server/level/ServerChunkCache$MainThreadExecutor
-accessible class net/minecraft/client/renderer/block/model/BlockElementFace$Deserializer
 accessible class net/minecraft/client/renderer/texture/Stitcher$Holder
 
 accessible class net/minecraft/server/level/ChunkMap$DistanceManager
 accessible class net/minecraft/client/resources/model/ModelBakery$ModelBakerImpl
 accessible class net/minecraft/client/resources/model/ModelManager$ReloadState
-accessible class net/minecraft/client/resources/model/BlockStateModelLoader$LoadedBlockModelDefinition
 accessible class net/minecraft/world/level/chunk/PalettedContainer$Data
 accessible class net/minecraft/server/MinecraftServer$ReloadableResources
 accessible class net/minecraft/client/multiplayer/SessionSearchTrees$Key
