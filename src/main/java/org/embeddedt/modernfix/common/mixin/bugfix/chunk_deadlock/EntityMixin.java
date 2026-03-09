@@ -24,7 +24,7 @@ public class EntityMixin {
     @WrapWithCondition(method = "startRiding(Lnet/minecraft/world/entity/Entity;ZZ)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;gameEvent(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/Holder;Lnet/minecraft/world/phys/Vec3;)V"))
     private boolean onlyAddIfSelfChunkLoaded(Level level, Entity entity, Holder holder, Vec3 vec3) {
         var chunkPos = entity.chunkPosition();
-        if (level instanceof ServerLevel serverLevel && serverLevel.getChunkSource().getChunkNow(chunkPos.x, chunkPos.z) == null) {
+        if (level instanceof ServerLevel serverLevel && serverLevel.getChunkSource().getChunkNow(chunkPos.x(), chunkPos.z()) == null) {
             ModernFix.LOGGER.warn("Skipped emitting ENTITY_MOUNT game event for entity {} as it would cause deadlock", entity.toString());
             return false;
         } else {

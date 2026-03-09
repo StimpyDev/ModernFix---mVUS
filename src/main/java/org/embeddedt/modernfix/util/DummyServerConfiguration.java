@@ -4,11 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.*;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.level.dimension.end.EndDragonFight;
-import net.minecraft.world.level.gamerules.GameRules;
-import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.storage.WorldData;
 import net.minecraft.world.level.storage.ServerLevelData;
 
@@ -47,16 +43,6 @@ public class DummyServerConfiguration implements WorldData {
     }
 
     @Override
-    public CompoundTag getCustomBossEvents() {
-        return null;
-    }
-
-    @Override
-    public void setCustomBossEvents(CompoundTag nbt) {
-
-    }
-
-    @Override
     public ServerLevelData overworldData() {
         return null;
     }
@@ -67,7 +53,7 @@ public class DummyServerConfiguration implements WorldData {
     }
 
     @Override
-    public CompoundTag createTag(RegistryAccess registries, CompoundTag hostPlayerNBT) {
+    public CompoundTag createTag(java.util.UUID playerUUID) {
         return null;
     }
 
@@ -122,27 +108,7 @@ public class DummyServerConfiguration implements WorldData {
     }
 
     @Override
-    public GameRules getGameRules() {
-        return null;
-    }
-
-    @Override
-    public CompoundTag getLoadedPlayerTag() {
-        return null;
-    }
-
-    @Override
-    public EndDragonFight.Data endDragonFightData() {
-        return EndDragonFight.Data.DEFAULT;
-    }
-
-    @Override
-    public void setEndDragonFightData(EndDragonFight.Data data) {
-
-    }
-
-    @Override
-    public WorldOptions worldGenOptions() {
+    public java.util.UUID getSinglePlayerUUID() {
         return null;
     }
 

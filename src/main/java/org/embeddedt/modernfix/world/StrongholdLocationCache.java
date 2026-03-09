@@ -2,6 +2,7 @@ package org.embeddedt.modernfix.world;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -27,7 +28,7 @@ public class StrongholdLocationCache extends SavedData {
     );
 
     public static final SavedDataType<StrongholdLocationCache> TYPE = new SavedDataType<>(
-            "modernfix_stronghold_cache",
+            Identifier.withDefaultNamespace("modernfix_stronghold_cache"),
             StrongholdLocationCache::new,
             CODEC,
             DataFixTypes.SAVED_DATA_FORCED_CHUNKS

@@ -8,7 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import net.minecraft.world.level.storage.WritableLevelData;
 import org.embeddedt.modernfix.duck.IChunkGenerator;
 import org.embeddedt.modernfix.duck.IServerLevel;
@@ -28,7 +28,7 @@ public abstract class ServerLevelMixin extends Level implements IServerLevel {
         super(writableLevelData, resourceKey, registryAccess, holder, bl, bl2, l, i);
     }
 
-    @Shadow public abstract DimensionDataStorage getDataStorage();
+    @Shadow public abstract SavedDataStorage getDataStorage();
 
     @Shadow @Final private ServerChunkCache chunkSource;
     private StrongholdLocationCache mfix$strongholdCache;

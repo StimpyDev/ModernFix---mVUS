@@ -13,7 +13,7 @@ import java.util.function.BooleanSupplier;
 public abstract class MinecraftMixin<R extends Runnable> extends BlockableEventLoop<R> {
 
     protected MinecraftMixin(String p_i50403_1_) {
-        super(p_i50403_1_);
+        super(p_i50403_1_, false);
     }
 
     @Override
