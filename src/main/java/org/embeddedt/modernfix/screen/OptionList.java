@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.Tooltip;
@@ -111,11 +111,11 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
         }
 
         @Override
-        public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean isHovering, float partialTick) {
+        public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean isHovering, float partialTick) {
             Font var10000 = OptionList.this.minecraft.font;
             float x = (float)(OptionList.this.minecraft.screen.width / 2 - this.width / 2);
             int y = this.getY();
-            guiGraphics.drawString(var10000, this.name, (int)x, y, 0xFFFFFFFF);
+            guiGraphics.text(var10000, this.name, (int)x, y, 0xFFFFFFFF);
             /*
             if(mouseX >= x && mouseY >= y && mouseX <= (x + this.width) && mouseY <= (y + OptionList.this.minecraft.font.lineHeight))
                 OptionList.this.mainScreen.renderComponentHoverEffect(matrixStack, this.name.getStyle(), mouseX, mouseY);
@@ -184,18 +184,18 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
         }
 
         @Override
-        public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean isHovering, float partialTick) {
+        public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean isHovering, float partialTick) {
             MutableComponent nameComponent = getOptionComponent(option);
             if(this.option.isUserDefined())
                 nameComponent = nameComponent.withStyle(style -> style.withItalic(true)).append(Component.translatable("modernfix.config.not_default"));
             float textX = (float)(this.getX() + DEPTH_OFFSET * option.getDepth() + 160 - OptionList.this.maxNameWidth);
             float textY = (float) this.getY() + 6;
-            guiGraphics.drawString(OptionList.this.minecraft.font, nameComponent, (int)textX, (int)textY, 0xFFFFFFFF);
+            guiGraphics.text(OptionList.this.minecraft.font, nameComponent, (int)textX, (int)textY, 0xFFFFFFFF);
             this.toggleButton.setPosition(this.getX() + 175, this.getY());
             this.toggleButton.setMessage(getOptionMessage(this.option));
-            this.toggleButton.render(guiGraphics, mouseX, mouseY, partialTick);
+            this.toggleButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
             this.helpButton.setPosition(this.getX() + 175 + 55, this.getY());
-            this.helpButton.render(guiGraphics, mouseX, mouseY, partialTick);
+            this.helpButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
             /*
             if(mouseX >= textX && mouseY >= textY && mouseX <= (textX + OptionList.this.maxNameWidth) && mouseY <= (textY + OptionList.this.minecraft.font.lineHeight))
                 OptionList.this.mainScreen.renderComponentHoverEffect(matrixStack, nameComponent.getStyle(), mouseX, mouseY);
