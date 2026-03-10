@@ -15,6 +15,7 @@ public class ModernFixCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("modernfix")
+                .requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
                 .then(literal("mcfunctions").requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
                         .executes(context -> {
                             ServerLevel level = context.getSource().getLevel();
