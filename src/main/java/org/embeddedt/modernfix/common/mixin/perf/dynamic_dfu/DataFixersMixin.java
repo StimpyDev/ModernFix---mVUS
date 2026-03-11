@@ -1,17 +1,16 @@
 package org.embeddedt.modernfix.common.mixin.perf.dynamic_dfu;
 
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.mojang.datafixers.DataFixerBuilder;
 import net.minecraft.util.datafix.DataFixers;
 import org.embeddedt.modernfix.dfu.DFUBlaster;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(DataFixers.class)
 public class DataFixersMixin {
-    @ModifyReturnValue(method = "createFixerUpper", at = @At("RETURN"))
-    private static DataFixerBuilder.Result setupMapBlasting(DataFixerBuilder.Result original) {
+    @Inject(method = "<clinit>", at = @At("TAIL"))
+    private static void setupMapBlasting(CallbackInfo ci) {
         DFUBlaster.blastMaps();
-        return original;
     }
 }

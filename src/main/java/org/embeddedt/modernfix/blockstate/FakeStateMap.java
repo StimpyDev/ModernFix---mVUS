@@ -2,7 +2,6 @@ package org.embeddedt.modernfix.blockstate;
 
 import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,13 +13,13 @@ import java.util.*;
  * Intentionally throws on methods that would be inefficient so that we know
  * if an incompatible mod is present.
  */
-public class FakeStateMap<S> implements Map<Map<Property<?>, Comparable<?>>, S> {
-    private final Map<Property<?>, Comparable<?>>[] keys;
-    private Map<Map<Property<?>, Comparable<?>>, S> fastLookup;
-    private final Object[] values;
+public class FakeStateMap<K, V> implements Map<K, V> {
+    private Object[] keys;
+    private Map<K, V> fastLookup;
+    private Object[] values;
     private int usedSlots;
     public FakeStateMap(int numStates) {
-        this.keys = new Map[numStates];
+        this.keys = new Object[numStates];
         this.values = new Object[numStates];
         this.usedSlots = 0;
     }
@@ -46,13 +45,13 @@ public class FakeStateMap<S> implements Map<Map<Property<?>, Comparable<?>>, S> 
     }
 
     @SuppressWarnings("unchecked")
-    private Map<Map<Property<?>, Comparable<?>>, S> getFastLookup() {
+    private Map<K, V> getFastLookup() {
         if(fastLookup == null) {
-            var map = new Object2ObjectOpenHashMap<Map<Property<?>, Comparable<?>>, S>(usedSlots);
-            Map<Property<?>, Comparable<?>>[] keys = this.keys;
+            var map = new Object2ObjectOpenHashMap<K, V>(usedSlots);
+            Object[] keys = this.keys;
             Object[] values = this.values;
             for(int i = 0; i < usedSlots; i++) {
-                map.put(keys[i], (S)values[i]);
+                map.put((K)keys[i], (V)values[i]);
             }
             fastLookup = map;
         }
@@ -60,30 +59,35 @@ public class FakeStateMap<S> implements Map<Map<Property<?>, Comparable<?>>, S> 
     }
 
     @Override
-    public S get(Object o) {
+    public V get(Object o) {
         return getFastLookup().get(o);
     }
 
     @Nullable
     @Override
-    public S put(Map<Property<?>, Comparable<?>> propertyComparableMap, S s) {
+    public V put(K key, V value) {
         if(fastLookup != null) {
             throw new IllegalStateException("Cannot populate map after fast lookup is built");
         }
-        keys[usedSlots] = propertyComparableMap;
-        values[usedSlots] = s;
+        if(usedSlots == keys.length) {
+            int newLen = keys.length + (keys.length >> 1);
+            keys = Arrays.copyOf(keys, newLen);
+            values = Arrays.copyOf(values, newLen);
+        }
+        keys[usedSlots] = key;
+        values[usedSlots] = value;
         usedSlots++;
         return null;
     }
 
     @Override
-    public S remove(Object o) {
+    public V remove(Object o) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void putAll(@NotNull Map<? extends Map<Property<?>, Comparable<?>>, ? extends S> map) {
-        for(Entry<? extends Map<Property<?>, Comparable<?>>, ? extends S> entry : map.entrySet()) {
+    public void putAll(@NotNull Map<? extends K, ? extends V> map) {
+        for(Entry<? extends K, ? extends V> entry : map.entrySet()) {
             this.put(entry.getKey(), entry.getValue());
         }
     }
@@ -97,8 +101,9 @@ public class FakeStateMap<S> implements Map<Map<Property<?>, Comparable<?>>, S> 
         this.usedSlots = 0;
     }
 
-    private <T> List<T> asList(T... array) {
-        var list = Arrays.asList(array);
+    @SuppressWarnings("unchecked")
+    private <T> List<T> asList(Object[] array) {
+        List<T> list = (List<T>)Arrays.asList(array);
         if(usedSlots < array.length) {
             list = list.subList(0, usedSlots);
         }
@@ -107,11 +112,12 @@ public class FakeStateMap<S> implements Map<Map<Property<?>, Comparable<?>>, S> 
 
     @NotNull
     @Override
-    public Set<Map<Property<?>, Comparable<?>>> keySet() {
+    @SuppressWarnings("unchecked")
+    public Set<K> keySet() {
         return new AbstractSet<>() {
             @Override
-            public Iterator<Map<Property<?>, Comparable<?>>> iterator() {
-                return keys.length == usedSlots ? Iterators.forArray(keys) : asList(keys).iterator();
+            public Iterator<K> iterator() {
+                return keys.length == usedSlots ? Iterators.forArray((K[])keys) : ((List<K>)asList(keys)).iterator();
             }
 
             @Override
@@ -123,13 +129,15 @@ public class FakeStateMap<S> implements Map<Map<Property<?>, Comparable<?>>, S> 
 
     @NotNull
     @Override
-    public Collection<S> values() {
-        return (Collection<S>)asList(values);
+    @SuppressWarnings("unchecked")
+    public Collection<V> values() {
+        return (Collection<V>)asList(values);
     }
 
     @NotNull
     @Override
-    public Set<Entry<Map<Property<?>, Comparable<?>>, S>> entrySet() {
+    @SuppressWarnings("unchecked")
+    public Set<Entry<K, V>> entrySet() {
         return new AbstractSet<>() {
             @Override
             public int size() {
@@ -138,7 +146,7 @@ public class FakeStateMap<S> implements Map<Map<Property<?>, Comparable<?>>, S> 
 
             @NotNull
             @Override
-            public Iterator<Entry<Map<Property<?>, Comparable<?>>, S>> iterator() {
+            public Iterator<Entry<K, V>> iterator() {
                 return new Iterator<>() {
                     int currentIdx = 0;
 
@@ -148,10 +156,10 @@ public class FakeStateMap<S> implements Map<Map<Property<?>, Comparable<?>>, S> 
                     }
 
                     @Override
-                    public Entry<Map<Property<?>, Comparable<?>>, S> next() {
+                    public Entry<K, V> next() {
                         if (currentIdx >= usedSlots)
                             throw new IndexOutOfBoundsException();
-                        Entry<Map<Property<?>, Comparable<?>>, S> entry = new AbstractMap.SimpleImmutableEntry<>(keys[currentIdx], (S) values[currentIdx]);
+                        Entry<K, V> entry = new AbstractMap.SimpleImmutableEntry<>((K)keys[currentIdx], (V)values[currentIdx]);
                         currentIdx++;
                         return entry;
                     }
