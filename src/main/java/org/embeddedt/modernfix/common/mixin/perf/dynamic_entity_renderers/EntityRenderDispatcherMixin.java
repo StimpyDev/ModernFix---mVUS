@@ -2,6 +2,7 @@ package org.embeddedt.modernfix.common.mixin.perf.dynamic_entity_renderers;
 
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.embeddedt.modernfix.annotation.ClientOnlyMixin;
@@ -23,11 +24,18 @@ public class EntityRenderDispatcherMixin {
 
     private EntityRendererMap mfix$dynamicRenderers;
 
-    @Inject(method = "getRenderer", at = @At("RETURN"), cancellable = true)
-    private <T extends Entity> void checkNullness(T entity, CallbackInfoReturnable<EntityRenderer<? super T, ?>> cir) {
+    @Inject(method = "getRenderer(Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/client/renderer/entity/EntityRenderer;", at = @At("RETURN"), cancellable = true, require = 0)
+    private <T extends Entity> void checkNullnessFromEntity(T entity, CallbackInfoReturnable<EntityRenderer<? super T, ?>> cir) {
         // apparently some mods yeet the renderers map and cause issues
-        if(cir.getReturnValue() == null)
+        if(cir.getReturnValue() == null && this.mfix$dynamicRenderers != null)
             cir.setReturnValue((EntityRenderer<? super T, ?>)mfix$dynamicRenderers.get(entity.getType()));
+    }
+
+    @Inject(method = "getRenderer(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;)Lnet/minecraft/client/renderer/entity/EntityRenderer;", at = @At("RETURN"), cancellable = true, require = 0)
+    private <S extends EntityRenderState> void checkNullnessFromState(S renderState, CallbackInfoReturnable<EntityRenderer<?, ? super S>> cir) {
+        // 26.1+ uses state-based renderer lookup; pull the type from render state.
+        if(cir.getReturnValue() == null && this.mfix$dynamicRenderers != null)
+            cir.setReturnValue((EntityRenderer<?, ? super S>)mfix$dynamicRenderers.get(renderState.entityType));
     }
 
     @Redirect(method = "onResourceManagerReload", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;renderers:Ljava/util/Map;"))
