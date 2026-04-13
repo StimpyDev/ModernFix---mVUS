@@ -107,17 +107,25 @@ public class ModernFixEarlyConfig {
                 LOGGER.error("Error loading config " + configFile, e);
             }
         }
-        Splitter dotSplitter = Splitter.on('.');
         for(String mixinPath : mixinPaths) {
             try(InputStream stream = ModernFixEarlyConfig.class.getClassLoader().getResourceAsStream(mixinPath)) {
+                if(stream == null) {
+                    LOGGER.warn("Could not find mixin class {} while scanning options", mixinPath);
+                    continue;
+                }
                 ClassReader reader = new ClassReader(stream);
                 ClassNode node = new ClassNode();
                 reader.accept(node,  ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-                if(node.invisibleAnnotations == null)
-                    return;
+                List<AnnotationNode> allAnnotations = new ArrayList<>();
+                if(node.invisibleAnnotations != null)
+                    allAnnotations.addAll(node.invisibleAnnotations);
+                if(node.visibleAnnotations != null)
+                    allAnnotations.addAll(node.visibleAnnotations);
+                if(allAnnotations.isEmpty())
+                    continue;
                 boolean isMixin = false, isClientOnly = false, requiredModPresent = true, isDevOnly = false;
                 String requiredModId = "";
-                for(AnnotationNode annotation : node.invisibleAnnotations) {
+                for(AnnotationNode annotation : allAnnotations) {
                     if(Objects.equals(annotation.desc, MIXIN_DESC)) {
                         isMixin = true;
                     } else if(Objects.equals(annotation.desc, MIXIN_CLIENT_ONLY_DESC)) {
@@ -146,7 +154,7 @@ public class ModernFixEarlyConfig {
                     String mixinCategoryName = "mixin." + mixinClassName.substring(0, mixinClassName.lastIndexOf('.'));
                     mixinOptions.add(mixinCategoryName);
                 }
-            } catch(IOException e) {
+            } catch(IOException | RuntimeException e) {
                 LOGGER.error("Error scanning file " + mixinPath, e);
             }
         }

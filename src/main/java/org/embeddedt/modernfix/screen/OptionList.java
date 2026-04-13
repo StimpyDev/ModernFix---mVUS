@@ -166,7 +166,9 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
                 mainScreen.setLastScrollAmount(scrollAmount());
                 Minecraft.getInstance().setScreen(new ModernFixOptionInfoScreen(mainScreen, optionName));
             }).pos(75, 0).size(20, 20).build();
-            if(!I18n.exists("modernfix.option." + optionName)) {
+            String helpKey = "modernfix.option." + optionName;
+            String helpText = I18n.get(helpKey);
+            if(!I18n.exists(helpKey) || helpText == null || helpText.isBlank() || helpText.equals(helpKey)) {
                 this.helpButton.active = false;
                 if(ModernFixPlatformHooks.INSTANCE.isDevEnv() && OPTIONS_MISSING_HELP.add(optionName))
                     ModernFix.LOGGER.warn("Missing help for {}", optionName);
