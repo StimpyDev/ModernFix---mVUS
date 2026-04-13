@@ -1,11 +1,15 @@
 package org.embeddedt.modernfix.common.mixin.perf.dynamic_resources;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.client.renderer.item.ClientItem;
 import net.minecraft.client.resources.model.ClientItemInfoLoader;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.util.PlaceholderLookupProvider;
+import net.minecraft.util.StrictJsonParser;
 import org.embeddedt.modernfix.ModernFix;
 import org.embeddedt.modernfix.annotation.ClientOnlyMixin;
 import org.embeddedt.modernfix.dynresources.DynamicModelSystem;
@@ -14,8 +18,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -25,10 +27,7 @@ import java.util.function.Function;
 @ClientOnlyMixin
 public abstract class MixinClientItemInfoLoader {
     @Unique
-    private static final Method MFIX$LOAD_PENDING;
-
-    @Unique
-    private static final Method MFIX$GET_CLIENT_ITEM_INFO;
+    private static final FileToIdConverter MFIX$ITEM_LISTER = FileToIdConverter.json("items");
 
     @Unique
     private static volatile boolean MFIX$DYNAMIC_CLIENT_ITEMS_ENABLED = true;
@@ -36,27 +35,21 @@ public abstract class MixinClientItemInfoLoader {
     @Unique
     private static volatile boolean MFIX$DYNAMIC_CLIENT_ITEMS_FAILURE_LOGGED = false;
 
-    static {
-        Method loadPending = null;
-        Method getClientInfo = null;
-        try {
-            for (Method method : ClientItemInfoLoader.class.getDeclaredMethods()) {
-                if (method.getName().equals("lambda$scheduleLoad$3")
-                        && Modifier.isStatic(method.getModifiers())
-                        && method.getParameterCount() == 3) {
-                    method.setAccessible(true);
-                    loadPending = method;
-                    Class<?> pendingType = method.getReturnType();
-                    Method clientItemAccessor = pendingType.getDeclaredMethod("clientItemInfo");
-                    clientItemAccessor.setAccessible(true);
-                    getClientInfo = clientItemAccessor;
-                    break;
-                }
-            }
-        } catch (ReflectiveOperationException ignored) {
+    @Unique
+    private static ClientItem mfix$loadSingleClientItemInfo(Identifier resourceFileId, Resource resource, RegistryAccess.Frozen staticRegistries) {
+        Identifier itemId = MFIX$ITEM_LISTER.fileToId(resourceFileId);
+        try (var reader = resource.openAsReader()) {
+            PlaceholderLookupProvider placeholderLookupProvider = new PlaceholderLookupProvider(staticRegistries);
+            var context = placeholderLookupProvider.createSerializationContext(JsonOps.INSTANCE);
+            return ClientItem.CODEC.parse(context, StrictJsonParser.parse(reader))
+                    .ifError(error -> ModernFix.LOGGER.error("Couldn't parse item model '{}' from pack '{}': {}", itemId, resource.sourcePackId(), error.message()))
+                    .result()
+                    .map(clientItem -> placeholderLookupProvider.hasRegisteredPlaceholders() ? clientItem.withRegistrySwapper(placeholderLookupProvider.createSwapper()) : clientItem)
+                    .orElse(null);
+        } catch (Exception e) {
+            ModernFix.LOGGER.error("Failed to open item model {} from pack '{}'", resourceFileId, resource.sourcePackId(), e);
+            return null;
         }
-        MFIX$LOAD_PENDING = loadPending;
-        MFIX$GET_CLIENT_ITEM_INFO = getClientInfo;
     }
 
     /**
@@ -67,7 +60,7 @@ public abstract class MixinClientItemInfoLoader {
     private static Function<Map<Identifier, Resource>, ? extends CompletionStage<ClientItemInfoLoader.LoadedClientInfos>> skipAOTClientItemLoad(
             Function<Map<Identifier, Resource>, ? extends CompletionStage<ClientItemInfoLoader.LoadedClientInfos>> original,
             @Local(ordinal = 0) RegistryAccess.Frozen staticRegistries) {
-        if (!MFIX$DYNAMIC_CLIENT_ITEMS_ENABLED || MFIX$LOAD_PENDING == null || MFIX$GET_CLIENT_ITEM_INFO == null) {
+        if (!MFIX$DYNAMIC_CLIENT_ITEMS_ENABLED) {
             return original;
         }
         return resourceMap -> CompletableFuture.completedFuture(DynamicModelSystem.createDynamicClientInfos(resourceMap, (resourceFileId, resource) -> {
@@ -75,18 +68,7 @@ public abstract class MixinClientItemInfoLoader {
                 return null;
             }
             try {
-                Object pendingLoad = MFIX$LOAD_PENDING.invoke(null, resourceFileId, resource, staticRegistries);
-                if (pendingLoad == null) {
-                    return null;
-                }
-                return (ClientItem)MFIX$GET_CLIENT_ITEM_INFO.invoke(pendingLoad);
-            } catch (ReflectiveOperationException e) {
-                MFIX$DYNAMIC_CLIENT_ITEMS_ENABLED = false;
-                if (!MFIX$DYNAMIC_CLIENT_ITEMS_FAILURE_LOGGED) {
-                    MFIX$DYNAMIC_CLIENT_ITEMS_FAILURE_LOGGED = true;
-                    ModernFix.LOGGER.warn("Disabling dynamic client item info loading due to reflection failure", e);
-                }
-                return null;
+                return mfix$loadSingleClientItemInfo(resourceFileId, resource, staticRegistries);
             } catch (RuntimeException e) {
                 MFIX$DYNAMIC_CLIENT_ITEMS_ENABLED = false;
                 if (!MFIX$DYNAMIC_CLIENT_ITEMS_FAILURE_LOGGED) {
