@@ -92,11 +92,6 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
         }
     }
 
-    @Override
-    public int scrollBarY() {
-        return super.scrollBarY();
-    }
-
     public int getRowWidth() {
         return super.getRowWidth() + 32;
     }
@@ -110,12 +105,11 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
             this.width = OptionList.this.minecraft.font.width(this.name);
         }
 
-        @Override
-        public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean isHovering, float partialTick) {
+        public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
             Font var10000 = OptionList.this.minecraft.font;
             float x = (float)(OptionList.this.minecraft.screen.width / 2 - this.width / 2);
-            int y = this.getY();
-            guiGraphics.text(var10000, this.name, (int)x, y, 0xFFFFFFFF);
+            int y = getY() + getHeight() - 10;
+            guiGraphics.text(var10000, this.name, (int)x, y, -1);
             /*
             if(mouseX >= x && mouseY >= y && mouseX <= (x + this.width) && mouseY <= (y + OptionList.this.minecraft.font.lineHeight))
                 OptionList.this.mainScreen.renderComponentHoverEffect(matrixStack, this.name.getStyle(), mouseX, mouseY);
@@ -184,18 +178,19 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
         }
 
         @Override
-        public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean isHovering, float partialTick) {
+        public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean isHovering, float partialTicks) {
+            int left = getX(), top = getY();
             MutableComponent nameComponent = getOptionComponent(option);
             if(this.option.isUserDefined())
                 nameComponent = nameComponent.withStyle(style -> style.withItalic(true)).append(Component.translatable("modernfix.config.not_default"));
-            float textX = (float)(this.getX() + DEPTH_OFFSET * option.getDepth() + 160 - OptionList.this.maxNameWidth);
-            float textY = (float) this.getY() + 6;
-            guiGraphics.text(OptionList.this.minecraft.font, nameComponent, (int)textX, (int)textY, 0xFFFFFFFF);
-            this.toggleButton.setPosition(this.getX() + 175, this.getY());
+            float textX = (float)(left + DEPTH_OFFSET * option.getDepth() + 160 - OptionList.this.maxNameWidth);
+            float textY = (float)(top + getHeight() / 2 - 4);
+            guiGraphics.text(OptionList.this.minecraft.font, nameComponent, (int)textX, (int)textY, -1);
+            this.toggleButton.setPosition(left + 175, top);
             this.toggleButton.setMessage(getOptionMessage(this.option));
-            this.toggleButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
-            this.helpButton.setPosition(this.getX() + 175 + 55, this.getY());
-            this.helpButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+            this.toggleButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+            this.helpButton.setPosition(left + 175 + 55, top);
+            this.helpButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
             /*
             if(mouseX >= textX && mouseY >= textY && mouseX <= (textX + OptionList.this.maxNameWidth) && mouseY <= (textY + OptionList.this.minecraft.font.lineHeight))
                 OptionList.this.mainScreen.renderComponentHoverEffect(matrixStack, nameComponent.getStyle(), mouseX, mouseY);
@@ -212,7 +207,6 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
             return ImmutableList.of(this.toggleButton, this.helpButton);
         }
 
-        @Override
         public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick) {
             for(GuiEventListener listener : children()) {
                 if(listener.mouseClicked(event, isDoubleClick))
@@ -221,7 +215,6 @@ public class OptionList extends ContainerObjectSelectionList<OptionList.Entry> {
             return false;
         }
 
-        @Override
         public boolean mouseReleased(MouseButtonEvent event) {
             for(GuiEventListener listener : children()) {
                 if(listener.mouseReleased(event))

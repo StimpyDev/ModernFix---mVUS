@@ -5,6 +5,7 @@ import com.google.common.collect.*;
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.embeddedt.modernfix.annotation.ClientOnlyMixin;
@@ -21,6 +22,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.regex.Pattern;
@@ -78,7 +82,12 @@ public class ModernFixEarlyConfig {
     }
 
     private void scanForAndBuildMixinOptions() {
-        List<String> configFiles = ImmutableList.of("modernfix-common.mixins.json", "modernfix-fabric.mixins.json", "modernfix-neoforge.mixins.json");
+        List<String> configFiles = ImmutableList.of(
+            "modernfix-common.mixins.json",
+            "modernfix-fabric.mixins.json",
+            "modernfix-neoforge.mixins.json",
+            "modernfix-modernfix.mixins.json"
+        );
         List<String> mixinPaths = new ArrayList<>();
         for(String configFile : configFiles) {
             InputStream stream = ModernFixEarlyConfig.class.getClassLoader().getResourceAsStream(configFile);
@@ -164,7 +173,6 @@ public class ModernFixEarlyConfig {
             .put("mixin.feature.direct_stack_trace", false)
             .put("mixin.feature.stalled_chunk_load_detection", false)
             .put("mixin.bugfix.restore_old_dragon_movement", false)
-            .put("mixin.perf.worldgen_allocation", false) // experimental
             .put("mixin.feature.cause_lag_by_disabling_threads", false)
             .put("mixin.bugfix.missing_block_entities", false)
             .put("mixin.feature.blockentity_incorrect_thread", false)
@@ -175,10 +183,9 @@ public class ModernFixEarlyConfig {
             .put("mixin.perf.dynamic_entity_renderers", false)
             .put("mixin.feature.integrated_server_watchdog", true)
             .put("mixin.perf.faster_item_rendering", false)
-            .put("mixin.perf.ingredient_item_deduplication", false)
             .put("mixin.feature.spam_thread_dump", false)
-            .put("mixin.feature.disable_unihex_font", false)
             .put("mixin.feature.remove_chat_signing", false)
+            .put("mixin.bugfix.skip_redundant_saves", false)
             .put("mixin.feature.snapshot_easter_egg", true)
             .put("mixin.feature.warn_missing_perf_mods", true)
             .put("mixin.feature.spark_profile_launch", false)
@@ -188,6 +195,12 @@ public class ModernFixEarlyConfig {
             .putConditionally(() -> !isFabric, "mixin.bugfix.fix_config_crashes", true)
             .putConditionally(() -> !isFabric, "mixin.feature.registry_event_progress", true)
             .putConditionally(() -> isFabric, "mixin.perf.clear_fabric_mapping_tables", false)
+            // Beta (promote on next release)
+            .put("mixin.perf.compact_entity_models", false)
+            .put("mixin.perf.dynamic_languages", false)
+            .put("mixin.perf.faster_capabilities.bytecode_analysis", false)
+            .put("mixin.perf.ingredient_item_deduplication", false)
+            // END
             .build();
 
     private ModernFixEarlyConfig(File file) {
@@ -231,7 +244,7 @@ public class ModernFixEarlyConfig {
         disableIfModPresent("mixin.bugfix.item_cache_flag", "lithium", "canary", "radium");
         // DimThread makes changes to the server chunk manager (understandably), C2ME probably does the same
         disableIfModPresent("mixin.bugfix.chunk_deadlock", "c2me", "dimthread");
-        disableIfModPresent("mixin.perf.reuse_datapacks", "tac");
+        disableIfModPresent("mixin.perf.release_protochunks", "c2me");
         disableIfModPresent("mixin.launch.class_search_cache", "optifine");
         disableIfModPresent("mixin.perf.faster_texture_stitching", "optifine");
         disableIfModPresent("mixin.bugfix.entity_pose_stack", "optifine");
@@ -307,6 +320,32 @@ public class ModernFixEarlyConfig {
             boolean isEnabled = Boolean.valueOf(value);
             ModernFixMixinPlugin.instance.logger.info("Configured {} to '{}' via JVM property.", optionKey, isEnabled);
             this.options.get(optionKey).setEnabled(isEnabled, true);
+        }
+    }
+
+    private void readGlobalProperties() {
+        try {
+            Path minecraftFolder;
+            if (SystemUtils.IS_OS_MAC) {
+                minecraftFolder = Paths.get(System.getProperty("user.home"), "Library", "Application Support", "minecraft");
+            } else if (SystemUtils.IS_OS_WINDOWS) {
+                minecraftFolder = Paths.get(System.getenv("APPDATA"), ".minecraft");
+            } else {
+                minecraftFolder = Paths.get(System.getProperty("user.home"), ".minecraft");
+            }
+            Path globalPropsFile = minecraftFolder.resolve("global").resolve("modernfix-global-mixins.properties");
+            if (Files.exists(globalPropsFile)) {
+                Properties properties = new Properties();
+                try (var is = Files.newInputStream(globalPropsFile)) {
+                    properties.load(is);
+                }
+                if (!properties.isEmpty()) {
+                    LOGGER.info("Global properties specified: [{}]", properties.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(", ")));
+                    readProperties(properties);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error reading global properties file", e);
         }
     }
 
@@ -399,6 +438,7 @@ public class ModernFixEarlyConfig {
                 LOGGER.warn("Could not write configuration file", e);
             }
 
+            config.readGlobalProperties();
             config.readJVMProperties();
         }
 

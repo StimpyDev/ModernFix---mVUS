@@ -12,7 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @ClientOnlyMixin
 public class IntegratedServerMixin {
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void adjustServerPriority(CallbackInfo ci, @Local(argsOnly = true) Thread serverThread) {
-        serverThread.setPriority(4);
+    private void adjustServerPriority(CallbackInfo ci, @Local(ordinal = 0, argsOnly = true) Thread thread) {
+        int pri = 4;
+        thread.setPriority(pri);
     }
 }
