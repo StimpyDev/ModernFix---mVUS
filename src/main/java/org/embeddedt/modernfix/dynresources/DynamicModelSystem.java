@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSets;
 import it.unimi.dsi.fastutil.objects.ReferenceSets;
+import net.fabricmc.fabric.impl.client.model.loading.UnbakedModelDeserializerRegistry;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.item.ClientItem;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
@@ -23,7 +24,6 @@ import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.client.resources.model.ResolvedModel;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.client.resources.model.cuboid.CuboidModel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
@@ -64,7 +64,7 @@ public class DynamicModelSystem {
                     ModernFix.LOGGER.info("Loading unbaked model {}", key);
                 }
                 try (Reader reader = resource.openAsReader()) {
-                    return CuboidModel.fromStream(reader);
+                    return UnbakedModelDeserializerRegistry.deserialize(reader);
                 }
             }
         });
